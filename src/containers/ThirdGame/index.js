@@ -218,7 +218,7 @@ const ThirdGame = () => {
             <Tooltip title="Download Excel" placement='bottom'><span className='f_flex f_align-center f_content-center f_cp f_rollover-icon' onClick={() => downloadFile()}><F_DownloadExcelIcon width='14px' height='14px' /></span></Tooltip>
           </div>
           <div className='f_ml-10'>
-            <Button type="primary" className="f_flex f_align-center f_content-center" onClick={() => setIsVisibleModal(true)}><F_PlusIcon width='12px' height='12px' fill='#fff' /> Add</Button>
+            <Button type="primary" className="f_flex f_align-center f_content-center" onClick={() => {setSelectedData(null); setIsVisible({visible : true , levelId : null})}}><F_PlusIcon width='12px' height='12px' fill='#fff' /> Add</Button>
           </div>
         </div>
       </div>
@@ -312,7 +312,7 @@ const ThirdGame = () => {
           </div>
         </div>
       </Modal>
-      {isVisible && <DataDrawer selecteddata={selecteddata} visible={isVisible?.visible} onClose={onClose}/>}
+      {isVisible && <DataDrawer selecteddata={selecteddata} visible={isVisible?.visible} setIsVisible={setIsVisible}/>}
     </React.Fragment>
   )
 }
