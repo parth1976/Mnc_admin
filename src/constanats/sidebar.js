@@ -47,4 +47,13 @@ export const USER_SIDEBAR_MENU = [
             </React.Fragment>
         ),
     },
+    {
+        path: '/liveSession',
+        name: 'Live Session',
+        icon: (
+            <React.Fragment>
+                <F_CompanyIcon width="18px" height="18px" />
+            </React.Fragment>
+        ),
+    },
 ]
