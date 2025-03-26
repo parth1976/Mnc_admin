@@ -153,7 +153,7 @@ const Next10Days = () => {
       <div className='f_dashboard-bg'>
         <div className='f_dashboard-header f_flex f_align-center f_content-between'>
           <div className='f_flex f_align-center'>
-            <h6 className='f_mr-5'>Overdue Payments </h6>
+            <h6 className='f_mr-5'>Game Playes</h6>
             {/* <Popover placement="bottom" overlayClassName="f_common-popover" content={handleFilterMonthPopover()} trigger="click">
                             <Tooltip title="Filter" placement='top'><span className='f_cp f_flex f_align-center f_content-center f_rollover-icon'><F_FilterIcon width='14px' height='14px' /></span></Tooltip>
                         </Popover> */}
@@ -171,19 +171,7 @@ const Next10Days = () => {
           </div>
         </div>
         <div className='f_dashboard-content'>
-          <Table columns={companyList}
-            dataSource={data}
-            pagination={false}
-            className='f_listing-antd-table'
-            summary={() => (
-              <Table.Summary fixed>
-                <Table.Summary.Row className='f_ant-table-summary-fixed'>
-                  <Table.Summary.Cell className="f_text-right f_fw-600" index={0} colSpan={5}>Total:</Table.Summary.Cell>
-                  <Table.Summary.Cell className="f_text-right f_fw-600 f_color-primary-500" index={1}><span className='f_color-primary-500 '>{counts?.totalAmount || 0}</span></Table.Summary.Cell>
-                </Table.Summary.Row>
-              </Table.Summary>
-            )}
-          />
+          
         </div>
       </div>
     </React.Fragment>
