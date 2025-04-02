@@ -8,13 +8,16 @@ import {
     Checkbox,
     Popconfirm,
     Divider,
-    Drawer
+    Drawer,
+    Modal,
+    Input
 } from 'antd';
 import {
     DragOutlined,
     DeleteOutlined,
     ArrowRightOutlined,
-    ArrowLeftOutlined
+    ArrowLeftOutlined,
+    PlusOutlined
 } from '@ant-design/icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -27,6 +30,68 @@ const AnswerManager = ({ questionId, answerDrawer, setAnswerDrawer }) => {
     const [selectedMain, setSelectedMain] = useState([]);
     const [selectedTemp, setSelectedTemp] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalType, setModalType] = useState('main'); // 'main' or 'temp'
+    const [newAnswers, setNewAnswers] = useState(['']);
+
+    const addAnswers = async () => {
+        if (newAnswers.length === 0) {
+            message.warning('Please add at least one answer');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const data = {
+                questionId,
+                answers: newAnswers,
+            };
+            if (modalType === 'temp') {
+                data.priority = 'medium'
+            }
+            const endpoint =
+                modalType === 'main'
+                    ? `${BASE_URL}/admin/firstGame/questions/add-to-main`
+                    : `${BASE_URL}/admin/firstGame/questions/add-to-temp`;
+
+            callAPI('POST', endpoint, data).then((res) => {
+                if (res) {
+                    message.success(`Added ${newAnswers.length} answer(s) to ${modalType}`);
+                    fetchAnswers();
+                    setIsModalOpen(false);
+                    setNewAnswers(['']);
+                }
+            });
+        } catch (error) {
+            message.error('Failed to add answers');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openModal = (type) => {
+        setModalType(type);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setNewAnswers(['']);
+    };
+
+    const handleAddNewAnswer = () => {
+        setNewAnswers([...newAnswers, '']);
+    };
+
+    const handleRemoveAnswer = (index) => {
+        setNewAnswers(newAnswers.filter((_, i) => i !== index));
+    };
+
+    const handleAnswerChange = (value, index) => {
+        const updatedAnswers = [...newAnswers];
+        updatedAnswers[index] = value;
+        setNewAnswers(updatedAnswers);
+    };
 
     useEffect(() => {
         fetchAnswers();
@@ -208,147 +273,194 @@ const AnswerManager = ({ questionId, answerDrawer, setAnswerDrawer }) => {
     };
 
     return (
-        <Drawer
-            title="Answer Mapper"
-            width={1200}
-            open={answerDrawer}
-            onClose={() => setAnswerDrawer(false)}
-            bodyStyle={{ padding: 0, overflow: 'hidden' }}
+        <>
+            <Drawer
+                title="Answer Mapper"
+                width={1200}
+                open={answerDrawer}
+                onClose={() => setAnswerDrawer(false)}
+                bodyStyle={{ padding: 0, overflow: 'hidden' }}
 
-        >
-            <DndProvider backend={HTML5Backend}>
-                <div style={{
-                    display: 'flex', gap: 16,
-                    height: 'calc(100vh - 55px)', // Subtract drawer header height
-                    padding: '16px'
-                }}>
-                    <Card
-                        title={`Main Answers (${mainAnswers.length})`}
-                        style={{ flex: 1 }}
-                        loading={loading}
-                        bodyStyle={{
-                            padding: '16px',
-                            height: 'calc(100% - 56px)', // Subtract card header height
-                            overflow: 'auto'
-                        }}
-                        extra={
-                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                {selectedMain.length > 0 && (
+            >
+                <DndProvider backend={HTML5Backend}>
+                    <div style={{
+                        display: 'flex', gap: 16,
+                        height: 'calc(100vh - 55px)', // Subtract drawer header height
+                        padding: '16px'
+                    }}>
+                        <Card
+                            title={`Main Answers (${mainAnswers.length})`}
+                            style={{ flex: 1 }}
+                            loading={loading}
+                            bodyStyle={{
+                                padding: '16px',
+                                height: 'calc(100% - 56px)', // Subtract card header height
+                                overflow: 'auto'
+                            }}
+                            extra={
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                     <Button
                                         type="primary"
-                                        icon={<ArrowRightOutlined />}
-                                        onClick={() => moveToTemp(selectedMain)}
-                                        disabled={selectedMain.length === 0}
+                                        icon={<PlusOutlined />}
+                                        onClick={() => openModal('main')}
                                     >
-                                        Move to Temp ({selectedMain.length})
+                                        Answer
                                     </Button>
-                                )}
-                                <Checkbox
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            setSelectedMain(mainAnswers);
-                                        } else {
-                                            setSelectedMain([]);
-                                        }
-                                    }}
-                                    checked={selectedMain.length === mainAnswers.length && mainAnswers.length > 0}
-                                    indeterminate={selectedMain.length > 0 && selectedMain.length < mainAnswers.length}
-                                >
-                                    Select All
-                                </Checkbox>
-                            </div>
-                        }
-                    >
-                        {mainAnswers.length === 0 && (
-                            <div style={{ padding: 16, textAlign: 'center', color: 'rgba(0, 0, 0, 0.45)' }}>
-                                No answers in main collection
-                            </div>
-                        )}
-                        <List
-                            dataSource={mainAnswers}
-                            renderItem={(answer) => (
-                                <AnswerItem
-                                    answer={answer}
-                                    type="main"
-                                    onDrop={handleDropToMain}
-                                    onSelect={handleMainSelect}
-                                    isSelected={selectedMain.includes(answer)}
-                                />
-                            )}
-                        />
-                    </Card>
-
-                    <Card
-                        title={`Temp Answers (${tempAnswers.length})`}
-                        style={{ flex: 1 }}
-                        loading={loading}
-                        bodyStyle={{
-                            padding: '16px',
-                            height: 'calc(100% - 56px)', // Subtract card header height
-                            overflow: 'auto'
-                        }}
-                        extra={
-                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                {selectedTemp.length > 0 && (
-                                    <>
+                                    {selectedMain.length > 0 && (
                                         <Button
                                             type="primary"
-                                            icon={<ArrowLeftOutlined />}
-                                            onClick={() => moveToMain(selectedTemp)}
-                                            disabled={selectedTemp.length === 0}
+                                            icon={<ArrowRightOutlined />}
+                                            onClick={() => moveToTemp(selectedMain)}
+                                            disabled={selectedMain.length === 0}
                                         >
-                                            Move to Main ({selectedTemp.length})
+                                            Move to Temp ({selectedMain.length})
                                         </Button>
-                                        <Popconfirm
-                                            title={`Delete ${selectedTemp.length} selected answer(s)?`}
-                                            onConfirm={() => deleteTempAnswers(selectedTemp)}
-                                            okText="Yes"
-                                            cancelText="No"
-                                        >
-                                            <Button danger icon={<DeleteOutlined />}>
-                                                Delete ({selectedTemp.length})
-                                            </Button>
-                                        </Popconfirm>
-                                    </>
-                                )}
-                                <Checkbox
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            setSelectedTemp(tempAnswers.map((a) => a.answer));
-                                        } else {
-                                            setSelectedTemp([]);
-                                        }
-                                    }}
-                                    checked={selectedTemp.length === tempAnswers.length && tempAnswers.length > 0}
-                                    indeterminate={selectedTemp.length > 0 && selectedTemp.length < tempAnswers.length}
-                                >
-                                    Select All
-                                </Checkbox>
-
-                            </div>
-                        }
-                    >
-                        {tempAnswers.length === 0 && (
-                            <div style={{ padding: 16, textAlign: 'center', color: 'rgba(0, 0, 0, 0.45)' }}>
-                                No answers in temp collection
-                            </div>
-                        )}
-                        <List
-                            dataSource={tempAnswers}
-                            renderItem={(answer) => (
-                                <AnswerItem
-                                    answer={answer}
-                                    type="temp"
-                                    onDrop={handleDropToTemp}
-                                    onSelect={handleTempSelect}
-                                    isSelected={selectedTemp.includes(answer.answer)}
-                                />
+                                    )}
+                                    <Checkbox
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedMain(mainAnswers);
+                                            } else {
+                                                setSelectedMain([]);
+                                            }
+                                        }}
+                                        checked={selectedMain.length === mainAnswers.length && mainAnswers.length > 0}
+                                        indeterminate={selectedMain.length > 0 && selectedMain.length < mainAnswers.length}
+                                    >
+                                        Select All
+                                    </Checkbox>
+                                </div>
+                            }
+                        >
+                            {mainAnswers.length === 0 && (
+                                <div style={{ padding: 16, textAlign: 'center', color: 'rgba(0, 0, 0, 0.45)' }}>
+                                    No answers in main collection
+                                </div>
                             )}
-                        />
-                    </Card>
+                            <List
+                                dataSource={mainAnswers}
+                                renderItem={(answer) => (
+                                    <AnswerItem
+                                        answer={answer}
+                                        type="main"
+                                        onDrop={handleDropToMain}
+                                        onSelect={handleMainSelect}
+                                        isSelected={selectedMain.includes(answer)}
+                                    />
+                                )}
+                            />
+                        </Card>
+
+                        <Card
+                            title={`Temp Answers (${tempAnswers.length})`}
+                            style={{ flex: 1 }}
+                            loading={loading}
+                            bodyStyle={{
+                                padding: '16px',
+                                height: 'calc(100% - 56px)', // Subtract card header height
+                                overflow: 'auto'
+                            }}
+                            extra={
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                    <Button
+                                        type="primary"
+                                        icon={<PlusOutlined />}
+                                        onClick={() => openModal('temp')}
+                                    >
+                                        Answer
+                                    </Button>
+                                    {selectedTemp.length > 0 && (
+                                        <>
+                                            <Button
+                                                type="primary"
+                                                icon={<ArrowLeftOutlined />}
+                                                onClick={() => moveToMain(selectedTemp)}
+                                                disabled={selectedTemp.length === 0}
+                                            >
+                                                Move to Main ({selectedTemp.length})
+                                            </Button>
+                                            <Popconfirm
+                                                title={`Delete ${selectedTemp.length} selected answer(s)?`}
+                                                onConfirm={() => deleteTempAnswers(selectedTemp)}
+                                                okText="Yes"
+                                                cancelText="No"
+                                            >
+                                                <Button danger icon={<DeleteOutlined />}>
+                                                    ({selectedTemp.length})
+                                                </Button>
+                                            </Popconfirm>
+                                        </>
+                                    )}
+                                    <Checkbox
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedTemp(tempAnswers.map((a) => a.answer));
+                                            } else {
+                                                setSelectedTemp([]);
+                                            }
+                                        }}
+                                        checked={selectedTemp.length === tempAnswers.length && tempAnswers.length > 0}
+                                        indeterminate={selectedTemp.length > 0 && selectedTemp.length < tempAnswers.length}
+                                    >
+                                        Select All
+                                    </Checkbox>
+
+                                </div>
+                            }
+                        >
+                            {tempAnswers.length === 0 && (
+                                <div style={{ padding: 16, textAlign: 'center', color: 'rgba(0, 0, 0, 0.45)' }}>
+                                    No answers in temp collection
+                                </div>
+                            )}
+                            <List
+                                dataSource={tempAnswers}
+                                renderItem={(answer) => (
+                                    <AnswerItem
+                                        answer={answer}
+                                        type="temp"
+                                        onDrop={handleDropToTemp}
+                                        onSelect={handleTempSelect}
+                                        isSelected={selectedTemp.includes(answer.answer)}
+                                    />
+                                )}
+                            />
+                        </Card>
+                    </div>
+                </DndProvider>
+            </Drawer>
+            <Modal
+                title={`Add ${modalType === 'main' ? 'Main' : 'Temp'} Answers`}
+                open={isModalOpen}
+                onCancel={closeModal}
+                onOk={addAnswers}
+                okText="Add"
+                cancelText="Cancel"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {newAnswers.map((answer, index) => (
+                        <div key={index} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <Input
+                                placeholder="Enter answer"
+                                value={answer}
+                                onChange={(e) => handleAnswerChange(e.target.value, index)}
+                                style={{ flex: 1 }}
+                            />
+                            <Button
+                                icon={<PlusOutlined />}
+                                onClick={handleAddNewAnswer}
+                            />
+                            <Button
+                                disabled={newAnswers.length === 1}
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() => handleRemoveAnswer(index)}
+                            />
+                        </div>
+                    ))}
                 </div>
-            </DndProvider>
-        </Drawer>
+            </Modal>
+        </>
     );
 };
 
