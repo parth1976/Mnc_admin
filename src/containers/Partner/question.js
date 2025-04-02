@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Drawer, Table, Button, Modal, Form, Row, Col, Input } from "antd";
-import axios from "axios";
 import { callAPI } from "../../utils/api";
 import { BASE_URL } from "../../constanats";
 import { F_DeleteIcon, F_EditIcon } from "../../Icons";
 import moment from "moment";
 import { notify } from "../../utils/localServiceUtil";
 import { useForm } from "antd/es/form/Form";
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import AnswerManager from "./AnswerManager";
 
-const DataDrawer = ({ levelId, visible , onClose}) => {
+const DataDrawer = ({ levelId, visible, onClose }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
-  const [isOpen , setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedId , setSelectedId] = useState(false);
+  const [selectedId, setSelectedId] = useState(false);
+  const [answerDrawer, setAnswerDrawer] = useState(false);
+
   const [form] = useForm();
   useEffect(() => {
     if (visible && levelId) {
@@ -24,10 +27,10 @@ const DataDrawer = ({ levelId, visible , onClose}) => {
   const fetchData = async (id) => {
     setLoading(true);
     try {
-      callAPI('POST' , `${BASE_URL}/admin/firstGame/questions/getQuestions` , {filter :{ level : levelId}})
-      .then((res) => {
+      callAPI('POST', `${BASE_URL}/admin/firstGame/questions/getQuestions`, { filter: { level: levelId } })
+        .then((res) => {
           setData(res?.response?.list);
-      })
+        })
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -36,33 +39,33 @@ const DataDrawer = ({ levelId, visible , onClose}) => {
   };
 
   const handleDeleteQuestion = () => {
-      callAPI("DELETE", `${BASE_URL}/admin/firstGame/questions/deleteQuestions`, { ids: [selectedId] })
-        .then((res) => {
-          if (res) {
-            setDeleteConfirm(false);
-            fetchData();
-            notify("success", res?.message);
-            setSelectedId('')
-          }
-        })
-        .catch((err) => {
-          notify("error", err?.message)
-        });
-    }
-  
+    callAPI("DELETE", `${BASE_URL}/admin/firstGame/questions/deleteQuestions`, { ids: [selectedId] })
+      .then((res) => {
+        if (res) {
+          setDeleteConfirm(false);
+          fetchData();
+          notify("success", res?.message);
+          setSelectedId('')
+        }
+      })
+      .catch((err) => {
+        notify("error", err?.message)
+      });
+  }
+
   const handleCreateQuestion = () => {
     const url = selectedId ? `/admin/firstGame/questions/updateQuestion/${selectedId}` : `/admin/firstGame/questions/create`
-    callAPI("POST", `${BASE_URL}${url}`, { level: levelId , question: form.getFieldValue("question")})
-    .then((res) => {
-      if (res) {
-        setIsOpen(false);
-        fetchData();
-        notify("success", res?.message)
-      }
-    })
-    .catch((err) => {
-      notify("error", err?.message)
-    });
+    callAPI("POST", `${BASE_URL}${url}`, { level: levelId, question: form.getFieldValue("question") })
+      .then((res) => {
+        if (res) {
+          setIsOpen(false);
+          fetchData();
+          notify("success", res?.message)
+        }
+      })
+      .catch((err) => {
+        notify("error", err?.message)
+      });
   }
 
   const columns = [
@@ -77,9 +80,11 @@ const DataDrawer = ({ levelId, visible , onClose}) => {
       )
     },
     { title: "Question", dataIndex: "question", key: "question" },
-    { title: "Created At", dataIndex: "createdAt", key: "createdAt" , width: "10%", render: (x, props, index) => (
+    {
+      title: "Created At", dataIndex: "createdAt", key: "createdAt", width: "10%", render: (x, props, index) => (
         <span>{moment(x).format("DD-MM-YYYY")}</span>
-    )},
+      )
+    },
     {
       id: "action",
       key: "action",
@@ -91,7 +96,6 @@ const DataDrawer = ({ levelId, visible , onClose}) => {
       render: (x, props, index) => {
         return (
           <React.Fragment>
-
             <div className='f_flex f_align-center f_content-center'>
               <span
                 onClick={(e) => {
@@ -102,6 +106,15 @@ const DataDrawer = ({ levelId, visible , onClose}) => {
                 }}
                 className="f_cp f_icon-small-hover f_flex f_align-center f_content-center">
                 <F_EditIcon width='14px' height='14px' />
+              </span>
+              <span
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSelectedId(props._id);
+                  setAnswerDrawer(true);
+                }}
+                className="f_cp f_icon-small-hover f_flex f_align-center f_content-center">
+                <QuestionCircleOutlined width='14px' height='14px' />
               </span>
               <span
                 className="f_cp f_icon-small-hover f_icon-small-hover-delete f_flex f_align-center f_content-center f_ml-5"
@@ -122,20 +135,20 @@ const DataDrawer = ({ levelId, visible , onClose}) => {
 
   return (
     <React.Fragment>
-    <Drawer
-      title="Questions"
-      width={1000}
-      open={visible}
-      onClose={onClose}
-      extra={
-        <Button type="primary" onClick={() => {setIsOpen(true)}}>
-          Create
-        </Button>
-      }
-    >
-      <Table columns={columns} dataSource={data} loading={loading} rowKey="id" pagination={false} />
-    </Drawer>
-    <Modal
+      <Drawer
+        title="Questions"
+        width={1000}
+        open={visible}
+        onClose={onClose}
+        extra={
+          <Button type="primary" onClick={() => { setIsOpen(true) }}>
+            Create
+          </Button>
+        }
+      >
+        <Table columns={columns} dataSource={data} loading={loading} rowKey="id" pagination={false} />
+      </Drawer>
+      <Modal
         open={deleteConfirm}
         footer={null}
         title="Delete"
@@ -199,8 +212,8 @@ const DataDrawer = ({ levelId, visible , onClose}) => {
           </Row>
         </Form>
       </Modal>}
+      <AnswerManager questionId={selectedId} answerDrawer={answerDrawer} setAnswerDrawer={setAnswerDrawer} />
     </React.Fragment>
-    
   );
 };
 
