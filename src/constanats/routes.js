@@ -4,6 +4,7 @@ import Partner from "../containers/Partner";
 import SecondGame from "../containers/SecondGame";
 import ThirdGame from "../containers/ThirdGame";
 import GameSessionsAdmin from "../containers/GameSessionsAdmin";
+import ContactsUs from "../containers/ContactsUs";
 
 export const ROUTES = [
     {
@@ -29,5 +30,9 @@ export const ROUTES = [
     {
         path: '/liveSession',
         component: GameSessionsAdmin
+    },
+    {
+        path: '/contactUs',
+        component: ContactsUs
     },
 ]

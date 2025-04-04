@@ -12,6 +12,15 @@ export const USER_SIDEBAR_MENU = [
         ),
     },
     {
+        path: '/contactUs',
+        name: 'Contact Us',
+        icon: (
+            <React.Fragment>
+                <F_MultiUserIcon width="18px" height="18px" />
+            </React.Fragment>
+        ),
+    },
+    {
         path: '/contacts',
         name: 'Users',
         icon: (

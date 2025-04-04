@@ -72,7 +72,15 @@ const Header = () => {
         return (
           <div className="f_flex f_align-center">
             <F_MultiUserIcon width="18px" height="18px" />
-            <h6>Leads</h6>
+            <h6>Users</h6>
+            <Badge count={0} />
+          </div>
+        );
+      case containsUrl(currentUrl, "/contactUs"):
+        return (
+          <div className="f_flex f_align-center">
+            <F_MultiUserIcon width="18px" height="18px" />
+            <h6>Contact Us</h6>
             <Badge count={0} />
           </div>
         );
@@ -84,22 +92,22 @@ const Header = () => {
             <Badge count={0} />
           </div>
         );
-        case containsUrl(currentUrl, "/secondGame"):
-          return (
-            <div className="f_flex f_align-center">
-              <F_CompanyIcon width="18px" height="18px" />
-              <h6>Game2</h6>
-              <Badge count={0} />
-            </div>
-          );
-          case containsUrl(currentUrl, "/thirdGame"):
-            return (
-              <div className="f_flex f_align-center">
-                <F_CompanyIcon width="18px" height="18px" />
-                <h6>Game3</h6>
-                <Badge count={0} />
-              </div>
-            );
+      case containsUrl(currentUrl, "/secondGame"):
+        return (
+          <div className="f_flex f_align-center">
+            <F_CompanyIcon width="18px" height="18px" />
+            <h6>Game2</h6>
+            <Badge count={0} />
+          </div>
+        );
+      case containsUrl(currentUrl, "/thirdGame"):
+        return (
+          <div className="f_flex f_align-center">
+            <F_CompanyIcon width="18px" height="18px" />
+            <h6>Game3</h6>
+            <Badge count={0} />
+          </div>
+        );
       default:
         return <div> &nbsp;</div>;
     }

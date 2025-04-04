@@ -1,6 +1,6 @@
 import axios from "axios";
 import UtilLocalService from "./localServiceUtil";
-import {BASE_URL, TOKEN_KEY } from "../constanats";
+import { BASE_URL, TOKEN_KEY } from "../constanats";
 
 export const StaticComponent = () => { }
 StaticComponent.counter = 0;
@@ -42,18 +42,18 @@ export const callAPI = (method, url, data = {}, header = {}, Isloader = true, is
 
         };
         axios(request)
-            .then(async (data) => {                
+            .then(async (data) => {
                 const endTime = new Date(); // End time of the API call
                 const duration = endTime - startTime; // Calculate duration
                 if (data && data.data) data.data.executionTime = duration
                 resolve(data?.data);
             })
-            .catch(async (error) => {                
+            .catch(async (error) => {
                 if (
                     error?.response?.data?.code === "E_UNAUTHORIZED" ||
                     error?.response?.data?.code === "E_FORBIDDEN"
                 ) {
-                    if (!window.location.pathname.includes("/signIn")) {                        
+                    if (!window.location.pathname.includes("/signIn")) {
                         loaderActivityFn(true)
                         setTimeout(() => {
                             logoutClear().then((data) => {
@@ -106,18 +106,18 @@ export const loaderActivityFn = (showLoader) => {
 };
 
 export const logoutClear = () => {
-    return new Promise(async (resolve, reject) => {        
+    return new Promise(async (resolve, reject) => {
         const authUser = UtilLocalService.getLocalStorage("user");
         const playerId = UtilLocalService.getLocalStorage("playerId");
         const authToken = UtilLocalService.getLocalStorage(TOKEN_KEY);
         axios({
             method: "POST",
-            url: `${BASE_URL}/auth/logout`,
+            url: `${BASE_URL}/player/logout`,
             headers: {
                 Authorization: "Bearer " + authToken,
                 websiteCode: 'user'
             },
-            data: { },
+            data: {},
         })
             .then(() => {
                 // Local storage clear karne ka kaam
